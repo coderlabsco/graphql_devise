@@ -1,13 +1,29 @@
 # frozen_string_literal: true
 
 require 'rails'
+require 'rails/generators'
 require 'graphql'
 require 'devise_token_auth'
+require 'zeitwerk'
+
+GraphQL::Field.accepts_definitions(authenticate: GraphQL::Define.assign_metadata_key(:authenticate))
+GraphQL::Schema::Field.accepts_definition(:authenticate)
+
+loader = Zeitwerk::Loader.for_gem
+
+loader.collapse("#{__dir__}/graphql_devise/concerns")
+loader.collapse("#{__dir__}/graphql_devise/errors")
+loader.collapse("#{__dir__}/generators")
+
+loader.inflector.inflect('error_codes' => 'ERROR_CODES')
+loader.inflector.inflect('supported_options' => 'SUPPORTED_OPTIONS')
+
+loader.setup
 
 module GraphqlDevise
   class Error < StandardError; end
 
-  class InvalidMountOptionsError < GraphqlDevise::Error; end
+  class InvalidMountOptionsError < ::GraphqlDevise::Error; end
 
   @schema_loaded     = false
   @mounted_resources = []
@@ -52,28 +68,6 @@ module GraphqlDevise
   end
 end
 
+ActionDispatch::Routing::Mapper.include(GraphqlDevise::RouteMounter)
+
 require 'graphql_devise/engine'
-require 'graphql_devise/version'
-require 'graphql_devise/errors/error_codes'
-require 'graphql_devise/errors/execution_error'
-require 'graphql_devise/errors/user_error'
-require 'graphql_devise/errors/authentication_error'
-require 'graphql_devise/errors/detailed_user_error'
-
-require 'graphql_devise/concerns/controller_methods'
-require 'graphql_devise/schema'
-require 'graphql_devise/types/authenticatable_type'
-require 'graphql_devise/types/credential_type'
-require 'graphql_devise/types/mutation_type'
-require 'graphql_devise/types/query_type'
-require 'graphql_devise/default_operations/mutations'
-require 'graphql_devise/default_operations/resolvers'
-require 'graphql_devise/resolvers/dummy'
-
-require 'graphql_devise/mount_method/option_sanitizer'
-require 'graphql_devise/mount_method/options_validator'
-require 'graphql_devise/mount_method/operation_preparer'
-require 'graphql_devise/mount_method/operation_sanitizer'
-
-require 'graphql_devise/resource_loader'
-require 'graphql_devise/schema_plugin'

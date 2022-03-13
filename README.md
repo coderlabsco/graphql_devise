@@ -37,11 +37,15 @@ GraphQL interface on top of the [Devise Token Auth](https://github.com/lynndylan
          * [Devise Initializer](#devise-initializer)
       * [GraphQL Interpreter](#graphql-interpreter)
       * [Using Alongside Standard Devise](#using-alongside-standard-devise)
+   * [Changelog](#changelog)
    * [Future Work](#future-work)
+   * [Buy Us a Coffee](#buy-us-a-coffee)
+            * [BTC](#btc)
+            * [ADA](#ada)
    * [Contributing](#contributing)
    * [License](#license)
 
-<!-- Added by: mcelicalderon, at: Wed Oct 20 19:39:36 -05 2021 -->
+<!-- Added by: mcelicalderon, at: Sun Mar  6 17:22:14 -05 2022 -->
 
 <!--te-->
 
@@ -315,7 +319,7 @@ class User < ApplicationRecord
          :confirmable
 
   # including after calling the `devise` method is important.
-  include GraphqlDevise::Concerns::Model
+  include GraphqlDevise::Authenticatable
 end
 ```
 
@@ -383,7 +387,7 @@ GQL schema execution like this:
 # app/controllers/my_controller.rb
 
 class MyController < ApplicationController
-  include GraphqlDevise::Concerns::SetUserByToken
+  include GraphqlDevise::SetUserByToken
 
   def my_action
     result = DummySchema.execute(params[:query], context: gql_devise_context(User))
@@ -396,7 +400,7 @@ end
 # app/controllers/my_controller.rb
 
 class MyController < ApplicationController
-  include GraphqlDevise::Concerns::SetUserByToken
+  include GraphqlDevise::SetUserByToken
 
   def my_action
     result = DummySchema.execute(params[:query], context: gql_devise_context(User, Admin))
@@ -515,6 +519,9 @@ information you can check [this answer here](https://github.com/lynndylanhurley/
 This gem supports the same and should be easier to handle email templates due to the fact we don't override
 standard Devise templates.
 
+## Changelog
+Full list of changes in [CHANGELOG.md](CHANGELOG.md)
+
 ## Future Work
 We will continue to improve the gem and add better docs.
 
@@ -527,6 +534,18 @@ We will continue to build better docs for the gem after this first release, but 
 you can use [our specs](spec/requests) to better understand how to use the gem.
 Also, the [dummy app](spec/dummy) used in our specs will give you
 a clear idea on how to configure the gem on your Rails application.
+
+## Buy Us a Coffee
+If you'd like to support our work, you are welcome to do so!
+
+##### BTC
+```
+bc1qntlmyl24wuf6y5jyn2vg8kduss57dwtyrcflyq
+```
+##### ADA
+```
+addr1q8e8cjzutzptcrfgjgsjl3k4t4xy5ucrmkf2dmq9qn966q8saucty53avujfc9yu9vfk7266auhdx9fz4fsryzeagqds893nfw
+```
 
 ## Contributing
 

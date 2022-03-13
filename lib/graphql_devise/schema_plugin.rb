@@ -4,7 +4,7 @@ module GraphqlDevise
   class SchemaPlugin
     # NOTE: Based on GQL-Ruby docs  https://graphql-ruby.org/schema/introspection.html
     INTROSPECTION_FIELDS = ['__schema', '__type', '__typename']
-    DEFAULT_NOT_AUTHENTICATED = ->(field) { raise GraphqlDevise::AuthenticationError, "#{field} field requires authentication" }
+    DEFAULT_NOT_AUTHENTICATED = ->(field) { raise AuthenticationError, "#{field} field requires authentication" }
 
     def initialize(query: nil, mutation: nil, authenticate_default: true, public_introspection: !Rails.env.production?, resource_loaders: [], unauthenticated_proc: DEFAULT_NOT_AUTHENTICATED)
       @query                = query
@@ -79,7 +79,11 @@ module GraphqlDevise
       auth_required = if trace_data[:context]
         field.metadata[:authenticate]
       else
-        field.graphql_definition.metadata[:authenticate]
+        if Gem::Version.new(GraphQL::VERSION) >= Gem::Version.new('1.13.1')
+          field.graphql_definition(silence_deprecation_warning: true).metadata[:authenticate]
+        else
+          field.graphql_definition.metadata[:authenticate]
+        end
       end
 
       auth_required.nil? ? @authenticate_default : auth_required
@@ -87,7 +91,7 @@ module GraphqlDevise
 
     def load_fields
       @resource_loaders.each do |resource_loader|
-        raise Error, 'Invalid resource loader instance' unless resource_loader.instance_of?(GraphqlDevise::ResourceLoader)
+        raise ::GraphqlDevise::Error, 'Invalid resource loader instance' unless resource_loader.instance_of?(ResourceLoader)
 
         resource_loader.call(@query, @mutation)
       end
@@ -98,6 +102,3 @@ module GraphqlDevise
     end
   end
 end
-
-GraphQL::Field.accepts_definitions(authenticate: GraphQL::Define.assign_metadata_key(:authenticate))
-GraphQL::Schema::Field.accepts_definition(:authenticate)
